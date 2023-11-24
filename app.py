@@ -70,18 +70,6 @@ def get_crawled_data(main_input, tag_selector):
 
         return list(unique_tags)
 
-    except requests.exceptions.HTTPError as e:
-        if response.status_code == 403:
-            print(f'Error 403: Access forbidden for URL: {main_url}')
-        elif response.status_code == 404:
-            print(f'Error 404: URL not found: {main_url}')
-        else:
-            print(f'HTTP Error: {response.status_code} - {e}')
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f'Error: {e}')
-        return None
-
 @app.route('/')
 def index():
     return render_template('index.html')
