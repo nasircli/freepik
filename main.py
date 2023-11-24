@@ -41,10 +41,8 @@ def get_tags_from_url(url, tag_selector):
         return tags
     except requests.exceptions.HTTPError as e:
         handle_http_error(response, url)
-        raise  # Re-raise the exception to propagate it further
     except requests.exceptions.RequestException as e:
         handle_request_exception(e)
-        raise  # Re-raise the exception to propagate it further
 
 def get_crawled_data(main_input, tag_selector):
     try:
@@ -86,10 +84,8 @@ def get_crawled_data(main_input, tag_selector):
 
     except requests.exceptions.HTTPError as e:
         handle_http_error(response, main_url)
-        raise  # Re-raise the exception to propagate it further
     except requests.exceptions.RequestException as e:
         handle_request_exception(e)
-        raise  # Re-raise the exception to propagate it further
 
 @app.get("/")
 def read_root(request: Request):
@@ -100,12 +96,9 @@ async def crawl(request: Request, mainInput: str = Form(...)):
     tag_selector = '.showcase .showcase__item.showcase__item--buttons .showcase__thumbnail .tags-container ul.tags>li>.tag-item'
 
     try:
-        if not mainInput:
-            raise ValueError("Please provide a valid input")
-
         crawled_data = get_crawled_data(mainInput, tag_selector)
-        return templates.TemplateResponse("result.html", {"request": request, "crawled_data": crawled_data})
+        return templates.TemplateResponse("index.html", {"request": request, "crawled_data": crawled_data})
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
         print(traceback.format_exc())  # Print the traceback
-        return templates.TemplateResponse("result.html", {"request": request, "error_message": error_message})
+        return templates.TemplateResponse("index.html", {"request": request, "error_message": error_message})
