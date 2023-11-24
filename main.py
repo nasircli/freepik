@@ -72,10 +72,6 @@ def get_crawled_data(main_input, tag_selector):
             print(', '.join(main_tags))
             print('-' * 50)
 
-        # Remove the part related to the tag slider
-        # links = [urljoin(main_url, link['href']) for link in soup.select('body.new-resource-list .filter-tags-row .tag-slider--list li a, body.new-resource-list .no-results--popular .tag-slider--list li a')]
-
-        # Add the new tag selector
         links = [urljoin(main_url, link['href']) for link in soup.select(tag_selector)]
 
         for link in links:
@@ -91,6 +87,9 @@ def get_crawled_data(main_input, tag_selector):
     except requests.exceptions.RequestException as e:
         handle_request_exception(e)
 
+def get_tags_in_one_line(tag_list):
+    return ', '.join(tag_list)
+
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -101,7 +100,8 @@ async def crawl(request: Request, mainInput: str = Form(...)):
 
     try:
         crawled_data = get_crawled_data(mainInput, tag_selector)
-        return templates.TemplateResponse("index.html", {"request": request, "crawled_data": crawled_data})
+        tags_in_one_line = get_tags_in_one_line(crawled_data)
+        return templates.TemplateResponse("index.html", {"request": request, "crawled_data": crawled_data, "tags_in_one_line": tags_in_one_line})
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
         print(traceback.format_exc())  # Print the traceback
