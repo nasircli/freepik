@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import time
+import uvicorn
 
 app = Flask(__name__)
 
@@ -98,4 +99,4 @@ def crawl():
         return render_template('result.html', error_message=error_message)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    uvicorn.run(app, host="0.0.0.0", port=5000)
