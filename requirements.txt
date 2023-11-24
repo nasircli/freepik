@@ -6,4 +6,7 @@ uvicorn==0.15.0
 fastapi==0.68.1
 aiofiles==0.7.0
 Jinja2==3.0.3
+urllib3==1.26.7
+chardet==4.0.0
+charset_normalizer==2.0.0
 
