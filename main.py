@@ -1,11 +1,18 @@
-from flask import Flask, render_template, request
+from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import time
-import uvicorn
 
-app = Flask(__name__)
+app = FastAPI()
+
+# Mount the "static" folder to "/static" URL
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Jinja2 templates configuration
+templates = Jinja2Templates(directory="templates")
 
 def get_tags_from_url(url, tag_selector):
     try:
@@ -82,21 +89,18 @@ def get_crawled_data(main_input, tag_selector):
         print(f'Error: {e}')
         return None
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.get("/")
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.route('/crawl', methods=['POST'])
-def crawl():
+@app.post("/crawl")
+def crawl(request: Request):
     main_input = request.form['mainInput']
     tag_selector = '.showcase .showcase__item.showcase__item--buttons .showcase__thumbnail .tags-container ul.tags>li>.tag-item'
 
     try:
         crawled_data = get_crawled_data(main_input, tag_selector)
-        return render_template('result.html', crawled_data=crawled_data)
+        return templates.TemplateResponse("result.html", {"request": request, "crawled_data": crawled_data})
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
-        return render_template('result.html', error_message=error_message)
-
-if __name__ == '__main__':
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+        return templates.TemplateResponse("result.html", {"request": request, "error_message": error_message})
