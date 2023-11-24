@@ -59,16 +59,27 @@ def get_crawled_data(main_input, tag_selector):
             print(', '.join(main_tags))
             print('-' * 50)
 
-        # Extract links based on the specified class
         links = [urljoin(main_url, link['href']) for link in soup.select('body.new-resource-list .filter-tags-row .tag-slider--list li a, body.new-resource-list .no-results--popular .tag-slider--list li a')]
 
         for link in links:
             tags = get_tags_from_url(link, tag_selector)
             if tags:
                 unique_tags.update(tags)
-                time.sleep(1)  # Add a 1-second delay between requests to avoid being blocked
+                time.sleep(1)
 
         return list(unique_tags)
+
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 403:
+            print(f'Error 403: Access forbidden for URL: {main_url}')
+        elif response.status_code == 404:
+            print(f'Error 404: URL not found: {main_url}')
+        else:
+            print(f'HTTP Error: {response.status_code} - {e}')
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f'Error: {e}')
+        return None
 
 @app.route('/')
 def index():
