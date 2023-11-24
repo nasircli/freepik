@@ -72,7 +72,11 @@ def get_crawled_data(main_input, tag_selector):
             print(', '.join(main_tags))
             print('-' * 50)
 
-        links = [urljoin(main_url, link['href']) for link in soup.select('body.new-resource-list .filter-tags-row .tag-slider--list li a, body.new-resource-list .no-results--popular .tag-slider--list li a')]
+        # Remove the part related to the tag slider
+        # links = [urljoin(main_url, link['href']) for link in soup.select('body.new-resource-list .filter-tags-row .tag-slider--list li a, body.new-resource-list .no-results--popular .tag-slider--list li a')]
+
+        # Add the new tag selector
+        links = [urljoin(main_url, link['href']) for link in soup.select(tag_selector)]
 
         for link in links:
             tags = get_tags_from_url(link, tag_selector)
