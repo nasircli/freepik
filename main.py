@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import requests
@@ -28,16 +28,20 @@ def get_tags_from_url(url, tag_selector):
         tags = [tag_element.get_text(strip=True) for tag_element in soup.select(tag_selector)]
         return tags
     except requests.exceptions.HTTPError as e:
-        if response.status_code == 403:
-            print(f'Error 403: Access forbidden for URL: {url}')
-        elif response.status_code == 404:
-            print(f'Error 404: URL not found: {url}')
-        else:
-            print(f'HTTP Error: {response.status_code} - {e}')
-        return None
+        handle_http_error(response, url)
     except requests.exceptions.RequestException as e:
-        print(f'Error: {e}')
-        return None
+        handle_request_exception(e)
+
+def handle_http_error(response, url):
+    if response.status_code == 403:
+        print(f'Error 403: Access forbidden for URL: {url}')
+    elif response.status_code == 404:
+        print(f'Error 404: URL not found: {url}')
+    else:
+        print(f'HTTP Error: {response.status_code} - {e}')
+
+def handle_request_exception(e):
+    print(f'Error: {e}')
 
 def get_crawled_data(main_input, tag_selector):
     try:
@@ -78,28 +82,20 @@ def get_crawled_data(main_input, tag_selector):
         return list(unique_tags)
 
     except requests.exceptions.HTTPError as e:
-        if response.status_code == 403:
-            print(f'Error 403: Access forbidden for URL: {main_url}')
-        elif response.status_code == 404:
-            print(f'Error 404: URL not found: {main_url}')
-        else:
-            print(f'HTTP Error: {response.status_code} - {e}')
-        return None
+        handle_http_error(response, main_url)
     except requests.exceptions.RequestException as e:
-        print(f'Error: {e}')
-        return None
+        handle_request_exception(e)
 
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/crawl")
-def crawl(request: Request):
-    main_input = request.form['mainInput']
+async def crawl(request: Request, mainInput: str = Form(...)):
     tag_selector = '.showcase .showcase__item.showcase__item--buttons .showcase__thumbnail .tags-container ul.tags>li>.tag-item'
 
     try:
-        crawled_data = get_crawled_data(main_input, tag_selector)
+        crawled_data = get_crawled_data(mainInput, tag_selector)
         return templates.TemplateResponse("result.html", {"request": request, "crawled_data": crawled_data})
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
