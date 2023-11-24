@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import time
+import traceback
 
 app = FastAPI()
 
@@ -13,6 +14,17 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Jinja2 templates configuration
 templates = Jinja2Templates(directory="templates")
+
+def handle_http_error(response, url):
+    if response.status_code == 403:
+        print(f'Error 403: Access forbidden for URL: {url}')
+    elif response.status_code == 404:
+        print(f'Error 404: URL not found: {url}')
+    else:
+        print(f'HTTP Error: {response.status_code} - {response.text}')
+
+def handle_request_exception(e):
+    print(f'Error: {e}')
 
 def get_tags_from_url(url, tag_selector):
     try:
@@ -31,17 +43,6 @@ def get_tags_from_url(url, tag_selector):
         handle_http_error(response, url)
     except requests.exceptions.RequestException as e:
         handle_request_exception(e)
-
-def handle_http_error(response, url):
-    if response.status_code == 403:
-        print(f'Error 403: Access forbidden for URL: {url}')
-    elif response.status_code == 404:
-        print(f'Error 404: URL not found: {url}')
-    else:
-        print(f'HTTP Error: {response.status_code} - {e}')
-
-def handle_request_exception(e):
-    print(f'Error: {e}')
 
 def get_crawled_data(main_input, tag_selector):
     try:
@@ -99,4 +100,5 @@ async def crawl(request: Request, mainInput: str = Form(...)):
         return templates.TemplateResponse("result.html", {"request": request, "crawled_data": crawled_data})
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
+        print(traceback.format_exc())  # Print the traceback
         return templates.TemplateResponse("result.html", {"request": request, "error_message": error_message})
